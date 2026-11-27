@@ -23,11 +23,51 @@ example : (p ∧ q) ∧ r ↔ p ∧ (q ∧ r) :=
     (fun hl: (p ∧ q) ∧ r => ⟨hl.left.left, ⟨hl.left.right, hl.right⟩⟩)
     (fun hr: p ∧ (q ∧ r) => ⟨⟨hr.left, hr.right.left⟩, hr.right.right⟩)
 
-example : (p ∨ q) ∨ r ↔ p ∨ (q ∨ r) := sorry
+example : (p ∨ q) ∨ r ↔ p ∨ (q ∨ r) :=
+  Iff.intro
+    (fun hl: (p ∨ q) ∨ r =>
+      Or.elim hl
+      (fun hll: p ∨ q =>
+        Or.elim hll
+          (fun hlll: p => Or.inl hlll)
+          (fun hllr: q => Or.inr (Or.inl hllr)))
+      (fun hlr: r => Or.inr (Or.inr hlr)))
+    (fun hr: p ∨ (q ∨ r) =>
+      Or.elim hr
+      (fun hrl: p => Or.inl (Or.inl hrl))
+      (fun hrr: q ∨ r =>
+        Or.elim hrr
+        (fun hrrl: q => Or.inl (Or.inr hrrl))
+        (fun hrrr: r => Or.inr hrrr)))
 
 -- distributivity
-example : p ∧ (q ∨ r) ↔ (p ∧ q) ∨ (p ∧ r) := sorry
-example : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (p ∨ r) := sorry
+example : p ∧ (q ∨ r) ↔ (p ∧ q) ∨ (p ∧ r) :=
+  Iff.intro
+    (fun hl: p ∧ (q ∨ r) =>
+      Or.elim hl.right
+      (fun hll: q => Or.inl (And.intro hl.left hll))
+      (fun hlr: r => Or.inr (And.intro hl.left hlr)))
+    (fun hr: (p ∧ q) ∨ (p ∧ r) =>
+      Or.elim hr
+      (fun hrl: p ∧ q => And.intro hrl.left (Or.inl hrl.right))
+      (fun hrr: p ∧ r => And.intro hrr.left (Or.inr hrr.right)))
+
+
+example : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (p ∨ r) :=
+  Iff.intro
+    (fun hl: p ∨ (q ∧ r) =>
+      Or.elim hl
+      (fun hll: p => And.intro (Or.inl hll) (Or.inl hll))
+      (fun hlr: q ∧ r => And.intro (Or.inr hlr.left) (Or.inr hlr.right)))
+    (fun hr: (p ∨ q) ∧ (p ∨ r) =>
+      Or.elim hr.left
+      (fun hrll: p => Or.inl hrll)
+      (fun hrlr: q =>
+        Or.elim hr.right
+        (fun hrlrl: p => Or.inl hrlrl)
+        (fun hrlrr: r => Or.inr (And.intro hrlr hrlrr))
+      )
+    )
 
 -- other properties
 example : (p → (q → r)) ↔ (p ∧ q → r) := sorry
