@@ -109,12 +109,30 @@ example : ¬(p ∧ ¬p) :=
 example : p ∧ ¬q → ¬(p → q) :=
   fun hpnq: p ∧ ¬q => fun hpq: p → q => hpnq.right (hpq hpnq.left)
 
-example : ¬p → (p → q) := sorry
-example : (¬p ∨ q) → (p → q) := sorry
-example : p ∨ False ↔ p := sorry
-example : p ∧ False ↔ False := sorry
-example : (p → q) → (¬q → ¬p) := sorry
+example : ¬p → (p → q) :=
+  fun hnp: ¬p => fun hp: p => absurd hp hnp
 
+example : (¬p ∨ q) → (p → q) :=
+  fun hnpq: ¬p ∨ q =>
+    Or.elim hnpq
+    (fun hnp: ¬p => fun hp: p => absurd hp hnp)
+    (fun hq: q => fun _: p => hq)
+
+example : p ∨ False ↔ p :=
+  Iff.intro
+    (fun hpf: p ∨ False =>
+      Or.elim hpf
+      (fun hp: p => hp)
+      (fun hf: False => False.elim hf))
+    (fun hp: p => Or.inl hp)
+
+example : p ∧ False ↔ False :=
+  Iff.intro
+    (fun hpf: p ∧ False => hpf.right)
+    (fun hf: False => False.elim hf)
+
+example : (p → q) → (¬q → ¬p) :=
+  fun hpq: p → q => fun hnq: ¬q => fun hp: p => absurd (hpq hp) hnq
 
 -- proofs that require Classical reasoning
 open Classical
