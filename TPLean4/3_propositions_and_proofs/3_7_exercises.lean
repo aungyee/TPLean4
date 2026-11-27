@@ -137,10 +137,54 @@ example : (p → q) → (¬q → ¬p) :=
 -- proofs that require Classical reasoning
 open Classical
 
-example : (p → q ∨ r) → ((p → q) ∨ (p → r)) := sorry
-example : ¬(p ∧ q) → ¬p ∨ ¬q := sorry
-example : ¬(p → q) → p ∧ ¬q := sorry
-example : (p → q) → (¬p ∨ q) := sorry
-example : (¬q → ¬p) → (p → q) := sorry
-example : p ∨ ¬p := sorry
-example : (((p → q) → p) → p) := sorry
+example : (p → q ∨ r) → ((p → q) ∨ (p → r)) :=
+  fun hpqr: p → q ∨ r =>
+    Or.elim (em p)
+    (fun hp: p =>
+      Or.elim (hpqr hp)
+      (fun hq: q => Or.inl (fun _: p => hq))
+      (fun hr: r => Or.inr (fun _: p => hr)))
+    (fun hnp: ¬p =>
+      Or.inl (fun hp: p => absurd hp hnp))
+
+example : ¬(p ∧ q) → ¬p ∨ ¬q :=
+  fun hnpq: ¬(p ∧ q) =>
+    Or.elim (em p)
+    (fun hp: p =>
+      Or.elim (em q)
+      (fun hq: q => absurd (And.intro hp hq) hnpq)
+      (fun hnq: ¬q => Or.inr hnq))
+    (fun hnp: ¬p =>
+      Or.elim (em q)
+      (fun _: q => Or.inl hnp)
+      (fun hnq: ¬q => Or.inr hnq))
+
+example : ¬(p → q) → p ∧ ¬q :=
+  fun hnpq: ¬(p → q) =>
+    Or.elim (em p)
+    (fun hp: p =>
+      Or.elim (em q)
+      (fun hq: q => absurd (fun _: p => hq) hnpq)
+      (fun hnq: ¬q => ⟨hp, hnq⟩))
+    (fun hnp: ¬p =>
+      absurd (fun hp: p => absurd hp hnp) hnpq)
+
+example : (p → q) → (¬p ∨ q) :=
+  fun hpq: p → q =>
+    Or.elim (em p)
+    (fun hp: p => Or.inr (hpq hp))
+    (fun hnp: ¬p => Or.inl hnp)
+
+example : (¬q → ¬p) → (p → q) :=
+  fun hnqp: ¬q → ¬p =>
+    Or.elim (em q)
+    (fun hq: q => fun _:p => hq)
+    (fun hnq: ¬q => fun hp: p => absurd hp (hnqp hnq))
+
+example : p ∨ ¬p := em p
+
+example : (((p → q) → p) → p) :=
+  fun h: (p → q) → p =>
+    Or.elim (em p)
+    (fun hp: p => hp)
+    (fun hnp: ¬p => h (fun hp: p => absurd hp hnp))
